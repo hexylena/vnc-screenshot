@@ -9,12 +9,16 @@ import (
 	"os"
 
 	"github.com/mitchellh/go-vnc"
+	"github.com/urfave/cli"
 )
 
-func main() {
-	vncStr := os.Args[1]
+var (
+	version   string
+	builddate string
+)
 
-	nc, err := net.Dial("tcp", vncStr)
+func screenshot(address, filename string){
+	nc, err := net.Dial("tcp", address)
 	if err != nil {
 		fmt.Printf("Error connecting to VNC: %s", err)
 	}
@@ -69,7 +73,37 @@ func main() {
 	}
 
 	// Save to out.png
-	f, _ := os.OpenFile("out.png", os.O_WRONLY|os.O_CREATE, 0600)
+	f, _ := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0600)
 	defer f.Close()
 	png.Encode(f, img)
+}
+
+func main() {
+	app := cli.NewApp()
+	app.Name = "vnc-screenshot"
+	app.Usage = "Take screenshots of VNC servers from the command line."
+	app.Version = fmt.Sprintf("%s (%s)", version, builddate)
+
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "serverAddr",
+			Value:  "127.0.0.1:5000",
+			Usage:  "Server Address",
+			EnvVar: "VNC_SERVER_ADDR",
+		},
+		cli.StringFlag{
+			Name:   "out",
+			Value:  "out.png",
+			Usage:  "Output File Name",
+		},
+	}
+	app.Action = func(c *cli.Context) {
+		screenshot(c.String("serverAddr"), c.String("out"))
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		panic(err)
+	}
+
 }
