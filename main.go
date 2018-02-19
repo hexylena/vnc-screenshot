@@ -7,16 +7,14 @@ import (
 	"image/png"
 	"net"
 	"os"
-	"strconv"
 
 	"github.com/mitchellh/go-vnc"
 )
 
 func main() {
-	vncPortStr := os.Args[1]
-	vncPort, _ := strconv.Atoi(vncPortStr)
+	vncStr := os.Args[1]
 
-	nc, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", vncPort))
+	nc, err := net.Dial("tcp", vncStr)
 	if err != nil {
 		fmt.Printf("Error connecting to VNC: %s", err)
 	}
